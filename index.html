@@ -13,8 +13,10 @@
 		<div id="phone"></div>
 	</body>
 	<script type="text/javascript">
+		//这个是启用html5 plus方法 一定得有
 		document.addEventListener("plusready",function(){},false);
 		document.getElementById("add").addEventListener("click", function() {
+			//给一个点击事件  然后使用方法 有一个返回值 返回值就是图片的路劲
 			appimg.getPhoto(function(imageData) {
 				document.getElementById("phone").innerHTML = "<img src='" + imageData + "'>";
 			}, true);
