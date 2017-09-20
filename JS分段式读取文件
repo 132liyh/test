@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+//分段式读取文件有进度条，限制大小，可以读取，图片，文本，视频，音频，或者js文件
+	<head>
+		<meta charset="UTF-8">
+		<style type="text/css">
+			.txt {
+				position: relative;
+			}
+			
+			.txt:after {
+				content: "";
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				top: 0;
+				right: 0;
+				bottom: 0;
+				left: 0;
+				z-index: 1;
+				background: rgba(0, 0, 0, 0);
+			}
+			img
+			{
+				width: 120px;
+				height: 120px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="box">
+			<div class="txt"></div>
+			<div class="img"></div>
+			<div class="video"></div>
+			<div class="audio"></div>
+		</div>
+		<input type="file" onchange="jsReadFiles(this.files)" value="asd" />
+		<div>
+			<div class="tips"></div>
+			<progress max="100" value="0" id="progress"></progress>
+		</div>
+	</body>
+	<script>
+		//js 读取文件
+		function jsReadFiles(files) {
+			console.log(files)
+			if(files.length) {
+				var file = files[0];
+				var fileSize = file.size;
+				if(fileSize >= 100 * 1024 * 1024) {
+					alert('文件太大，请选择100M以下文件，防止浏览器崩溃！');
+					return false;
+				}
+				var reader = new FileReader(); //new一个FileReader实例
+				var reader2 = new FileReader();
+				var reader3 = new FileReader();
+				var step = fileSize/20;
+				var cuLoaded = 0;
+				//读取一段成功
+				reader.onprogress = function(e) {
+					cuLoaded += e.loaded;
+					//如果没有读完，继续
+					if(cuLoaded < fileSize) {
+						//没有上传完毕
+						document.querySelector(".tips").innerHTML="读取中...";
+						document.getElementById("progress").value=cuLoaded/fileSize*100;
+					} else {
+						//上传完毕
+						cuLoaded = fileSize;
+						//结束阻止
+						reader.onprogress = null;
+						reader.onload = null;
+						reader.onloadend = null;
+						//显示结果
+						if(/image+/.test(file.type)) { //判断文件是不是imgage类型
+							reader3.onload = function() {
+								document.querySelector(".img").innerHTML = '<img src="' + this.result + '"/>';
+							}
+							reader3.readAsDataURL(file);
+						}
+						if(/text+/.test(file.type) || /javascript+/.test(file.type)) { //判断文件类型，是不是text类型
+							reader3.onload = function() {
+								document.querySelector(".txt").innerHTML = '<div>' + this.result + '</div>';
+							}
+							reader3.readAsText(file);
+						}
+						if(/audio+/.test(file.type)) { //判断文件类型，是不是音频类型
+							reader3.onload = function() {
+								document.querySelector(".audio").innerHTML = '<audio controls src="' + this.result + '"></audio>';
+							}
+							reader3.readAsDataURL(file);
+						}
+						if(/video+/.test(file.type)) { //判断文件类型，是不是视频类型
+							reader3.onload = function() {
+								document.querySelector(".video").innerHTML = '<video controls src="' + this.result + '"></video>';
+							}
+							reader3.readAsDataURL(file);
+						}
+						
+						document.getElementById("progress").value=cuLoaded/fileSize*100;
+						document.querySelector(".tips").innerHTML="读取完毕";
+					}
+				}
+				reader.onload = function(e) {
+					readBlob(cuLoaded);
+				}
+				//开始读取
+				readBlob(0);
+				//指定开始位置，分块读取文件
+				function readBlob(start) {
+					//指定开始位置和结束位置读取文件
+					var blob = file.slice(start, start + step);
+					reader.readAsArrayBuffer(blob);
+				}
+
+			}
+		}
+	</script>
+
+</html>
